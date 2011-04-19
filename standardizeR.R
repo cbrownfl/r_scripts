@@ -1,25 +1,22 @@
 #input to script
-file = commandArgs(trailingOnly=TRUE)[1]
-num_reads = commandArgs(trailingOnly=TRUE)[2]
-num_cases = commandArgs(trailingOnly=TRUE)[3]
-method = commandArgs(trailingOnly=TRUE)[4]
-ttest = commandArgs(trailingOnly=TRUE)[5]
+file = commandArgs(trailingOnly=TRUE)[1] #file with the raw counts
+num_reads = commandArgs(trailingOnly=TRUE)[2] #file with the number of reads for each sample
+num_cases = commandArgs(trailingOnly=TRUE)[3] #the number of cases
+method = commandArgs(trailingOnly=TRUE)[4] #choose which method to use for standardizing
+ttest = commandArgs(trailingOnly=TRUE)[5] #do a ttest? paired unpaired or none
+mss = commandArgs(trailingOnly=TRUE)[6] #multiple sample scaling? true or false
+
+#get library
 library(qvalue)
 
 #read data
-data <- read.delim(file=file, sep="\t", header=T, row.names=NULL)
-header <- read.delim(file=file, sep="\t", header=F, row.names=NULL)
+data <- read.delim(file=file, sep="\t", header=T, row.names=1)
 reads <- read.delim(file=num_reads, sep=" ", header=F, row.names=1)
 num_cases <- as.numeric(num_cases)
 first_cont <- num_cases+1
 
-#format the data if there are annotations and a header
-col <- length(data[1,])
-row <- length(data[,1])
-top <- matrix(0, nrow=1, ncol=col+1)
-top[1:1, 1:col-1] <- header[1:1,2:col]
-annotations <- data[,1:1]
-data <- data[1:row,2:col]
+#format the data for annotations and a header
+annotations <- rownames(data)
 col <- length(data[1,])
 row <- length(data[,1])
 
@@ -45,8 +42,8 @@ if (method==0)
 	    for (j in 1:col)
 	    {	
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
-		    pertotal_adj[i:i, j:j] <- pertotal[i:i, j:j]*1000000
-			trans[i:i, j:j] <- log(pertotal_adj[i:i, j:j]+1, 2)
+			#pertotal_adj[i:i, j:j] <- pertotal[i:i, j:j]*1000000
+			trans[i:i, j:j] <- log(pertotal[i:i, j:j]+1, 2)
 		    sdev[1, j:j] <- sd(trans[1:row, j:j])
 		    average[1, j:j] <- mean(trans[1:row, j:j])
 	    }
@@ -200,6 +197,39 @@ if (method==5)
 			stand <- pertotal
 }
 
+#multiple sample scaling 
+if (mss=="true")
+{
+	allstand <- matrix(0, nrow=row*col, ncol=1)
+	mss <- matrix(0, nrow=row, ncol=col)
+	add <- 0
+	for (i in 1:col)
+		{
+			start <- 0 + add + 1
+			end <- start + row - 1
+			allstand[start:end, 1] <- stand[, i:i]
+			add <- row*i
+		}
+	min <- min(allstand)*-1
+	max <- max(allstand)+min
+	for (i in 1:row)
+	{
+		for (j in 1:col)
+		{
+			if (stand[i:i, j:j]+(min)==0)
+				{
+					mss[i:i, j:j] <- 0
+				}
+			if (stand[i:i, j:j]+(min)!=0)
+			{
+				mss[i:i, j:j] <- (stand[i:i, j:j]+(min))/(max)
+			}
+		}
+	}
+	hist(mss, main="multiple sample scaling")
+	stand <- mss
+}
+
 #t-test
 if (ttest=="paired")
 {
@@ -243,11 +273,15 @@ if (ttest!="none")
 	boxplot(pertotal, main="raw percent of total reads")
 	boxplot(trans, main="log transformed data")
 	boxplot(stand[,1:col], main="standardized data")
-	hist(ttest, main="t-test: p values", breaks=50)
-	hist(qvalues, main="q values", breaks=50)
+	hist(ttest, main="t-test: p values", breaks=100)
+	hist(qvalues, main="q values", breaks=100)
+	plot <- as.matrix(print)
+	annotation_name <- rownames(plot)
 	for (i in 1:row)
 	{
-		plot(stand[i:i,1:num_cases], col="red", type="l"); lines(stand[i:i, first_cont:col], col="blue", type="l")
+		plot(plot[i:i, 1:col], type="n", main=annotation_name[i:i], cex.main=0.5, xlab="sample", ylab="abundance")
+			lines(plot[i:i, 1:num_cases], col="red", type="l")
+			lines(c(first_cont:col), plot[i:i, first_cont:col], col="blue", type="l")
 	}
 }
 
@@ -264,12 +298,15 @@ if (ttest=="none")
 	boxplot(pertotal, main="raw percent of total reads")
 	boxplot(trans, main="log transformed data")
 	boxplot(stand[,1:col], main="standardized data")
+	plot <- as.matrix(print)
+	annotation <- row.names(plot)
 	for (i in 1:row)
 	{
-		plot(stand[i:i, 1:col], type="n"); lines(stand[i:i, 1:num_cases], col="red", type="l"); lines(stand[i:i, first_cont:col], col="blue", type="l")
+		plot(plot[i:i, 1:col], type="n", main=annotation[i:i], cex.main=0.5, xlab="sample", ylab="abundance")
+			lines(plot[i:i, 1:num_cases], col="red", type="l")
+			lines(c(first_cont:col), plot[i:i, first_cont:col], col="blue", type="l")
 	}
 }
-
 #print the table
 write.table(print, file="out", row.name=TRUE, quote=FALSE, sep="\t")
 #write.table(data.frame(pertotal), file="pertotal", row.names=TRUE, quote=FALSE, sep="\t")
