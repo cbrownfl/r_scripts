@@ -43,6 +43,7 @@ if (method==0)
 	    {	
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
 			#pertotal_adj[i:i, j:j] <- pertotal[i:i, j:j]*1000000
+			#trans[i:i, j:j] <- log(pertotal_adj[i:i, j:j]+1, 2)
 			trans[i:i, j:j] <- log(pertotal[i:i, j:j]+1, 2)
 		    sdev[1, j:j] <- sd(trans[1:row, j:j])
 		    average[1, j:j] <- mean(trans[1:row, j:j])

@@ -1,6 +1,6 @@
 # get from input 
 data <- commandArgs(trailingOnly=TRUE)[1] # get the file name with the counts
-mode <- commandArgs(trailingOnly=TRUE)[2] # do you want to use the raw counts or the percent of total reads?
+mode <- commandArgs(trailingOnly=TRUE)[2] # do you want to use the raw counts or the percent of total reads? pertotal or count
 num_reads <- commandArgs(trailingOnly=TRUE)[3] # file with the number of reads
 
 # load the files into R
@@ -13,6 +13,8 @@ attach(data)
 # define some variables 
 row <- length(data[,1]) # number of functions or OTUs
 col <- length(data[1,]) # number of samples
+pvalc <- col + 2
+qvalc <- col + 3
 treatment <- gl(2,4,col) # which samples are cases and controls ? 
 outcome <- gl(4,1,col) # which samples are paired ?
 
@@ -49,4 +51,5 @@ qvalue <- qvalue(pvalue)$qvalues
 
 #print out the data and pvalues
 print <- data.frame(names, data, pvalue, qvalue)
+print <- print[order(print[,pvalc], print[,qvalc]),]
 write.table(print, file="out", row.name=FALSE, quote=FALSE, sep="\t")
