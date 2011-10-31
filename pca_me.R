@@ -76,7 +76,7 @@ if (num_cases==0)
 		end <- samples_in_test + count
 		for (j in start:end)
 		{
-			color[j:j, 1] <- as.character(samples[i:i, 2]) 
+			color[j:j, 1] <- as.character(samples[i:i, 2])
 		}
 		start <- end + 1
 		count <- count + samples_in_test

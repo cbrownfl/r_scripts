@@ -40,7 +40,7 @@ if (method==0)
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
 			#pertotal_adj[i:i, j:j] <- pertotal[i:i, j:j]*1000000
 			#trans[i:i, j:j] <- log(pertotal_adj[i:i, j:j]+1, 2)
@@ -57,7 +57,7 @@ if (method==1)
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
 		    trans[i:i, j:j] <- log(pertotal[i:i, j:j]+1, 10)
 		    sdev_case[i,1] <- sd(trans[i:i, 1:num_cases])
@@ -74,7 +74,7 @@ if (method==2)
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
 		    trans[i:i, j:j] <- log(pertotal[i:i, j:j]+1, 10)
 		    sdev[i,1] <- sd(trans[i:i, 1:col])
@@ -83,13 +83,13 @@ if (method==2)
     }
 }
 
-## method 3: Log transform the raw counts.  Calculate standard deviation and average for cases and controls, separately, across columns.  
+## method 3: Log transform the raw counts.  Calculate standard deviation and average for cases and controls, separately, across columns.
 if (method==3)
 {
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    trans[i:i, j:j] <- log(data[i:i, j:j]+1, 2)
 		    sdev[1, j:j] <- sd(trans[1:row, j:j])
 		    average[1, j:j] <- mean(trans[1:row, j:j])
@@ -97,13 +97,13 @@ if (method==3)
     }
 }
 
-## method 4: Log transform the raw counts.  Calculate standard deviation and average for cases and controls, together, across rows.  
+## method 4: Log transform the raw counts.  Calculate standard deviation and average for cases and controls, together, across rows.
 if (method==4)
 {
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    trans[i:i, j:j] <- log(data[i:i, j:j]+1, 10)
 		    sdev[i,1] <- sd(trans[i:i, 1:col])
 		    average[i,1] <- mean(trans[i:i, 1:col])
@@ -117,7 +117,7 @@ if (method==5)
     for (i in 1:row)
     {
 	    for (j in 1:col)
-	    {	
+	    {
 		    pertotal[i:i, j:j] <- ((data[i:i, j:j])/(reads[j,1]))*100
 		}
 	}
@@ -198,7 +198,7 @@ if (method==5)
 			stand <- pertotal
 }
 
-#multiple sample scaling 
+#multiple sample scaling
 if (mss=="true")
 {
 	allstand <- matrix(0, nrow=row*col, ncol=1)
@@ -254,7 +254,7 @@ if (ttest=="notpaired")
 # if doing a ttest
 if (ttest!="none")
 {
-	#make more matricies 
+	#make more matricies
 	qvalues <- matrix(0, nrow=row, ncol=1)
 	qval <- qvalue(ttest[,1])$qvalues
 	qvalues <- as.matrix(qval)
@@ -268,7 +268,7 @@ if (ttest!="none")
 	table[, qvalc] <- qvalues
 	print <- data.frame(table, row.names=annotations)
 	print <- print[order(print[,ttestc], print[,qvalc]),]
-	
+
 	#plot some data
 	boxplot(data, main="raw counts")
 	boxplot(pertotal, main="raw percent of total reads")
@@ -288,12 +288,12 @@ if (ttest!="none")
 
 #if not doing a ttest
 if (ttest=="none")
-{	
+{
 	#make the table
 	table <- matrix(0, nrow=row, ncol=col)
 	table[,1:col] <- as.matrix(stand)
 	print <- data.frame(table, row.names=annotations)
-	
+
 	#plot some data
 	boxplot(data, main="raw counts")
 	boxplot(pertotal, main="raw percent of total reads")
