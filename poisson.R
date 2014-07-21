@@ -1,4 +1,4 @@
-# get from input 
+# get from input
 data <- commandArgs(trailingOnly=TRUE)[1] # get the file name with the counts
 mode <- commandArgs(trailingOnly=TRUE)[2] # do you want to use the raw counts or the percent of total reads? pertotal or count
 num_reads <- commandArgs(trailingOnly=TRUE)[3] # file with the number of reads
@@ -10,16 +10,16 @@ data <- read.delim(data, header=T, sep="\t", row.names=1)
 names <- row.names(data)
 attach(data)
 
-# define some variables 
+# define some variables
 row <- length(data[,1]) # number of functions or OTUs
 col <- length(data[1,]) # number of samples
 pvalc <- col + 2
 qvalc <- col + 3
-treatment <- gl(2,4,col) # which samples are cases and controls ? 
+treatment <- gl(2,4,col) # which samples are cases and controls ?
 outcome <- gl(4,1,col) # which samples are paired ?
 
-# make matricies 
-counts <- matrix(0, nrow=row, ncol=col)	
+# make matricies
+counts <- matrix(0, nrow=row, ncol=col)
 pvalue <- array(0, dim=row)
 pertotal <- matrix(0, nrow=row, ncol=col)
 qvalue <- matrix(0, nrow=row, ncol=1)
@@ -31,16 +31,16 @@ if (mode=="pertotal")
 	for (i in 1:row)
 	{
 		for (j in 1:col)
-		{	
+		{
 			pertotal[i:i, j:j] <- (data[i:i, j:j]/num_reads[j:j, 1])*100
 		}
-	} 
+	}
     data <- pertotal
 }
 
 # poisson!
 for (i in 1: row)
-{	
+{
 	counts[i,] <- t(data[i,])
 	model <- glmer(counts[i,] ~ treatment +(0+treatment|outcome),family=poisson())
 	pvalue[i] <- summary(model)@coefs[2,4]
